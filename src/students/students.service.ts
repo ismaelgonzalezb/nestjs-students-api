@@ -1,22 +1,30 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateStudentDto } from './dtos';
+import { Student } from './entities';
 
 @Injectable()
 export class StudentsService {
-  private students = [
-    {
-      id: 1,
-      name: 'Ismael',
-      lastname: 'Gonzalez',
-    },
-  ];
+  // private students = [
+  //   {
+  //     id: 1,
+  //     name: 'Ismael',
+  //     lastname: 'Gonzalez',
+  //   },
+  // ];
+
+  constructor(
+    @InjectRepository(Student)
+    private readonly studentsRepository: Repository<Student>,
+  ) {}
 
   getStudents() {
-    return this.students;
+    return this.studentsRepository.find();
   }
 
-  getStudent(id: string) {
-    const student = this.students.find((u) => u.id === +id);
+  async getStudent(id: string) {
+    const student = await this.studentsRepository.findOneBy({ id: +id });
 
     if (!student) {
       throw new NotFoundException('Student not found');
@@ -25,35 +33,34 @@ export class StudentsService {
     return student;
   }
 
-  createStudent(student: CreateStudentDto) {
-    this.students.push({
-      id: Math.random(),
-      ...student,
-    });
+  async createStudent(student: CreateStudentDto) {
+    const studentToCreate = this.studentsRepository.create(student);
+
+    await this.studentsRepository.save(studentToCreate);
   }
 
-  removeUser(id: string) {
-    const index = this.students.findIndex((u) => u.id === +id);
+  async removeUser(id: string) {
+    const student = await this.studentsRepository.findOneBy({ id: +id });
 
-    if (index === -1) {
+    if (!student) {
       throw new NotFoundException('User not found');
     }
 
-    this.students = this.students.slice(0, index);
+    this.studentsRepository.delete({ id: +id });
   }
 
-  updateStudent(id: string, properties: any) {
-    const index = this.students.findIndex((u) => u.id === +id);
-
-    if (index === -1) {
-      throw new NotFoundException('User not found');
-    }
-
-    this.students[index] = {
-      ...this.students[index],
+  async updateStudent(id: string, properties: any) {
+    const student = await this.studentsRepository.preload({
+      id: +id,
       ...properties,
-    };
+    });
 
-    return { success: true };
+    if (!student) {
+      throw new NotFoundException('User not found');
+    }
+
+    await this.studentsRepository.save(student);
+
+    return true;
   }
 }
