@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateStudentDto } from './dtos';
 
 @Injectable()
 export class StudentsService {
@@ -24,8 +25,11 @@ export class StudentsService {
     return student;
   }
 
-  createStudent(student: any) {
-    this.students.push(student);
+  createStudent(student: CreateStudentDto) {
+    this.students.push({
+      id: Math.random(),
+      ...student,
+    });
   }
 
   removeUser(id: string) {

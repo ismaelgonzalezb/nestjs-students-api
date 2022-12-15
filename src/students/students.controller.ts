@@ -9,6 +9,7 @@ import {
 import { HttpCode, Patch, Post } from '@nestjs/common/decorators';
 
 import { StudentsService } from './students.service';
+import { CreateStudentDto } from './dtos';
 
 @Controller('students')
 export class StudentsController {
@@ -25,7 +26,7 @@ export class StudentsController {
   }
 
   @Post()
-  createStudent(@Body() student: any) {
+  createStudent(@Body() student: CreateStudentDto) {
     return this.studentService.createStudent(student);
   }
 
